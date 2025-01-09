@@ -16,8 +16,8 @@ class Loan
     #[ReferenceOne(storeAs: "id", targetDocument: Game::class)]
     private $game_id;
 
-    #[Field(type: "string")]
-    private $borrower_name;
+    #[ReferenceOne(storeAs: "id", targetDocument: User::class)]
+    private $borrower;
 
     #[Field(type: "string")]
     private $loan_date;
@@ -28,103 +28,58 @@ class Loan
     #[Field(type: "string")]
     private $comment;
 
-    /**
-     * @return mixed
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * @param mixed $id
-     */
-    public function setId($id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getGameId()
+    public function getGameId(): ?Game
     {
         return $this->game_id;
     }
 
-    /**
-     * @param mixed $game_id
-     */
-    public function setGameId($game_id): void
+    public function setGameId(Game $game_id): void
     {
         $this->game_id = $game_id;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getBorrowerName()
+    public function getBorrower(): ?User
     {
-        return $this->borrower_name;
+        return $this->borrower;
     }
 
-    /**
-     * @param mixed $borrower_name
-     */
-    public function setBorrowerName($borrower_name): void
+    public function setBorrower(User $borrower): void
     {
-        $this->borrower_name = $borrower_name;
+        $this->borrower = $borrower;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getLoanDate()
+    public function getLoanDate(): ?string
     {
         return $this->loan_date;
     }
 
-    /**
-     * @param mixed $loan_date
-     */
-    public function setLoanDate($loan_date): void
+    public function setLoanDate(string $loan_date): void
     {
         $this->loan_date = $loan_date;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getReturnDate()
+    public function getReturnDate(): ?string
     {
         return $this->return_date;
     }
 
-    /**
-     * @param mixed $return_date
-     */
-    public function setReturnDate($return_date): void
+    public function setReturnDate(string $return_date): void
     {
         $this->return_date = $return_date;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getComment()
+    public function getComment(): ?string
     {
         return $this->comment;
     }
 
-    /**
-     * @param mixed $comment
-     */
-    public function setComment($comment): void
+    public function setComment(string $comment): void
     {
         $this->comment = $comment;
     }
-
-
-
-
 }
