@@ -10,6 +10,7 @@ use Doctrine\ODM\MongoDB\LockException;
 use Doctrine\ODM\MongoDB\Mapping\MappingException;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -77,7 +78,7 @@ class CommentController extends AbstractController
             'success' => true,
             'comment' => [
                 'id' => $comment->getId(),
-                'author' => $comment->getAuthor(),
+                'author' => $comment->getAuthor()->getId(),
                 'comment' => $comment->getComment(),
                 'date' => $comment->getDate(),
                 'game_id' => $comment->getGameId()->getId(),
@@ -91,7 +92,7 @@ class CommentController extends AbstractController
      * @throws MongoDBException
      */
     #[Route('/comments/{id}', name: 'app_comments_delete', methods: ['DELETE'])]
-    public function deleteComment(Request $request, DocumentManager $dm, string $id): JsonResponse
+    public function deleteComment(Request $request, DocumentManager $dm, string $id, Security $security): JsonResponse
     {
         $comment = $dm->find(Comment::class, $id);
 
@@ -100,6 +101,15 @@ class CommentController extends AbstractController
                 'success' => false,
                 'message' => 'Commentaire introuvable.'
             ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Vérification que l'utilisateur connecté est l'auteur du commentaire
+        $user = $security->getUser(); // Obtenir l'utilisateur connecté
+        if ($comment->getAuthor()->getId() !== $user->getId()) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Vous ne pouvez supprimer que vos propres commentaires.'
+            ], Response::HTTP_FORBIDDEN);
         }
 
         $dm->remove($comment);
@@ -126,7 +136,7 @@ class CommentController extends AbstractController
         $commentsJson = array_map(function ($comment) {
             return [
                 'id' => $comment->getId(),
-                'author' => $comment->getAuthor(),
+                'author' => $comment->getAuthor()->getId(),
                 'comment' => $comment->getComment(),
                 'date' => $comment->getDate(),
                 'game_id' => $comment->getGameId()->getId(),
@@ -145,7 +155,7 @@ class CommentController extends AbstractController
      * @throws Throwable
      */
     #[Route('/comments/{id}', name: 'app_comments_update', methods: ['PATCH'])]
-    public function updateComment(Request $request, DocumentManager $dm, string $id): JsonResponse
+    public function updateComment(Request $request, DocumentManager $dm, string $id, Security $security): JsonResponse
     {
         $comment = $dm->find(Comment::class, $id);
 
@@ -156,11 +166,18 @@ class CommentController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Vérification que l'utilisateur connecté est l'auteur du commentaire
+        $user = $security->getUser(); // Obtenir l'utilisateur connecté
+        if ($comment->getAuthor()->getId() !== $user->getId()) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Vous ne pouvez modifier que vos propres commentaires.'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        // Récupération des données de la requête
         $data = json_decode($request->getContent(), true);
 
-        if (isset($data['author'])) {
-            $comment->setAuthor($data['author']);
-        }
         if (isset($data['comment'])) {
             $comment->setComment($data['comment']);
         }
@@ -178,7 +195,7 @@ class CommentController extends AbstractController
             'message' => 'Commentaire mis à jour avec succès.',
             'comment' => [
                 'id' => $comment->getId(),
-                'author' => $comment->getAuthor(),
+                'author' => $comment->getAuthor()->getId(),
                 'comment' => $comment->getComment(),
                 'date' => $comment->getDate(),
                 'game_id' => $comment->getGameId()->getId(),
@@ -186,4 +203,5 @@ class CommentController extends AbstractController
             ]
         ], Response::HTTP_OK);
     }
+
 }
